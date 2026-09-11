@@ -17,11 +17,11 @@ if [[ ! -f $ICD ]]; then
 fi
 export VK_ICD_FILENAMES=$ICD
 
-SRC=crates/cordis-ui/tests/snapshots
+SRC=crates/piano-ui/tests/snapshots
 DEST=docs/screenshots
 
 if [[ ${1:-} == --check ]]; then
-    cargo test -p cordis-ui snapshot -- --ignored
+    cargo test -p piano-ui snapshot -- --ignored
     missing=0
     while read -r name; do
         [[ -z $name || $name == \#* ]] && continue
@@ -42,7 +42,7 @@ if [[ ${1:-} == --check ]]; then
 fi
 
 echo "rendering..."
-UPDATE_SNAPSHOTS=1 cargo test -p cordis-ui snapshot -- --ignored
+UPDATE_SNAPSHOTS=1 cargo test -p piano-ui snapshot -- --ignored
 
 mkdir -p "$DEST"
 while read -r name; do

@@ -7,8 +7,8 @@
 #   scripts/build_plugins.sh --windows    # cross-compile to Windows (MSVC)
 #
 # Layout, per the VST3 spec:
-#   Cordis.vst3/Contents/x86_64-linux/Cordis.so    (Linux)
-#   Cordis.vst3/Contents/x86_64-win/Cordis.vst3    (Windows)
+#   Piano.vst3/Contents/x86_64-linux/Piano.so    (Linux)
+#   Piano.vst3/Contents/x86_64-win/Piano.vst3    (Windows)
 #
 # A CLAP is the same shared object under a `.clap` name.
 set -euo pipefail
@@ -41,14 +41,14 @@ if [[ $WINDOWS -eq 1 ]]; then
         [[ -x "$d/clang-cl" ]] && { export PATH="$d:$PATH"; break; }
     done
     rustup target add "$TARGET" >/dev/null 2>&1 || true
-    cargo xwin build --release --target "$TARGET" -p cordis-plugin
+    cargo xwin build --release --target "$TARGET" -p piano-plugin
     ARTIFACTS="$TD/$TARGET/release"
 else
     PLATFORM="$(uname -s | tr '[:upper:]' '[:lower:]')"
     LIB_EXT="so"
     ARCH_DIR="$(uname -m)-linux"
     VST3_EXT="so"
-    cargo build --release -p cordis-plugin
+    cargo build --release -p piano-plugin
     ARTIFACTS="$TD/release"
 fi
 
@@ -58,8 +58,8 @@ print(re.search(r'^name\s*=\s*"([^"]+)"', open('bundler.toml').read(), re.M).gro
 PY
 )
 
-SRC="$ARTIFACTS/cordis_plugin.$LIB_EXT"
-[[ -f "$SRC" ]] || SRC="$ARTIFACTS/libcordis_plugin.$LIB_EXT"
+SRC="$ARTIFACTS/piano_plugin.$LIB_EXT"
+[[ -f "$SRC" ]] || SRC="$ARTIFACTS/libpiano_plugin.$LIB_EXT"
 [[ -f "$SRC" ]] || { echo "no artifact at $ARTIFACTS" >&2; exit 1; }
 
 OUT="$TD/bundled/$PLATFORM"

@@ -1,13 +1,13 @@
 # Cargo package name -> the display name a host shows, and the name of the
 # bundle directory.
 #
-# "Cordis" is FROZEN from first publication. With VENDOR it composes the preset
-# directory Cubase's MediaBay indexes (`<presets>/Phonix Audio/Cordis/`), and it
-# is the bundle name a host resolves when it scans for the plugin. Renaming it
-# orphans every `.vstpreset` a user already has. See COMPAT.md.
+# "Phonix Piano" composes, with VENDOR, the preset directory Cubase's MediaBay
+# indexes (`<presets>/Phonix Audio/Phonix Piano/`), and it is the bundle name a
+# host resolves when it scans for the plugin. See COMPAT.md.
 #
-# The vendor is deliberately NOT repeated here: a host prints VENDOR beside the
-# name already, so "Phonix Cordis" would only spend list width saying it twice.
+# The name repeats the vendor on purpose. "Piano" alone is the word every host
+# lists a dozen times over, and a plugin nobody can pick out of that list by
+# name is worse off than one that spends a little width saying whose it is.
 
-[cordis-plugin]
-name = "Cordis"
+[piano-plugin]
+name = "Phonix Piano"

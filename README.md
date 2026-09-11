@@ -1,4 +1,4 @@
-# Cordis
+# Phonix Piano
 
 **EXPERIMENTAL.** Under development and not yet judged in use: the sound, the factory
 bank and the editor can change from one version to the next. What cannot change is
@@ -47,42 +47,42 @@ soundboard, because `width` is where the model listens to the plate; the strings
 light as they sound; the dampers lift when the pedal goes down. The technician's
 adjustments sit around the case.
 
-![The editor](docs/screenshots/cordis_editor.png)
+![The editor](docs/screenshots/piano_editor.png)
 
 The soundboard, with the microphones on it:
 
-![The scene](docs/screenshots/cordis_scene.png)
+![The scene](docs/screenshots/piano_scene.png)
 
-![The keyboard](docs/screenshots/cordis_keyboard.png)
+![The keyboard](docs/screenshots/piano_keyboard.png)
 
 ## Layout
 
-    crates/cordis            the engine. serde, and libc on Linux.
-    crates/cordis-ui         the egui editor
-    crates/cordis-plugin     VST3 / CLAP, via nice-plug
-    crates/cordis-research   measurement tools
+    crates/piano            the engine. serde, and libc on Linux.
+    crates/piano-ui         the egui editor
+    crates/piano-plugin     VST3 / CLAP, via nice-plug
+    crates/piano-research   measurement tools
 
 The editor is a separate crate rather than a feature of the engine, and that is
 load-bearing. Cargo unifies features across a resolved graph, so an optional
-`egui` inside `cordis` would be switched on for the engine's own tests by any
+`egui` inside `piano` would be switched on for the engine's own tests by any
 `cargo test --workspace`. A crate boundary is the only thing that makes "the
 engine never sees egui" true rather than merely intended:
 
-    cargo tree -p cordis --edges normal   # serde; plus libc on Linux
+    cargo tree -p piano --edges normal   # serde; plus libc on Linux
 
 The engine's dependency list is deliberately that short. `libc` is there for one
 thing and one thing only; putting the worker threads at the audio callback's
 real-time priority, which is a Linux syscall; and nothing in the DSP touches
 it; on every other target the engine is serde alone. There is no `[features]`
-table in `crates/cordis/Cargo.toml`, and the absence is the contract.
+table in `crates/piano/Cargo.toml`, and the absence is the contract.
 
 ## Installing
 
 Take the archive for your platform from the nightly prerelease and unzip it:
 
-    Linux      Cordis.vst3/  ->  ~/.vst3/            Cordis.clap  ->  ~/.clap/
-    Windows    Cordis.vst3\  ->  C:\Program Files\Common Files\VST3\
-               Cordis.clap   ->  C:\Program Files\Common Files\CLAP\
+    Linux      Piano.vst3/  ->  ~/.vst3/            Piano.clap  ->  ~/.clap/
+    Windows    Piano.vst3\  ->  C:\Program Files\Common Files\VST3\
+               Piano.clap   ->  C:\Program Files\Common Files\CLAP\
 
 The binaries are built for `x86-64-v3`: they need an x86-64 CPU with AVX2 and
 FMA, which is any Intel from Haswell (2013) or AMD from Excavator (2015) on. An
@@ -125,10 +125,10 @@ built; none of it needs a secret.
 
 ## Measurement tools
 
-    cargo run --release -p cordis-research --bin cordis_bench
-    cargo run --release -p cordis-research --bin board_tf
+    cargo run --release -p piano-research --bin piano_bench
+    cargo run --release -p piano-research --bin board_tf
 
-`cordis_bench` reports the soundboard's mode count, where the coupling energy
+`piano_bench` reports the soundboard's mode count, where the coupling energy
 sits, and the realtime factor at several polyphonies. `board_tf` prints the
 plate's radiated magnitude response driven at a bridge point.
 
@@ -154,7 +154,7 @@ tests.
 The listening renders the model was developed against are still here as
 `#[ignore]`d tests. They write 48 kHz WAVs under `renders/`, which is ignored:
 
-    cargo test -p cordis --release --lib -- --ignored --nocapture \
+    cargo test -p piano --release --lib -- --ignored --nocapture \
         render_the_chord_attack
 
 `render_the_sympathy_ab` and `render_the_pp_mechanics_ab` are the same shape.
@@ -172,7 +172,7 @@ are covered by a test.
 
 MIT or Apache-2.0, at your option; `LICENSE-MIT` and `LICENSE-APACHE` are both
 here. The editor bundles Noto Serif Display under the SIL Open Font License,
-whose text sits beside it in `crates/cordis-ui/assets/OFL.txt`.
+whose text sits beside it in `crates/piano-ui/assets/OFL.txt`.
 
 One thing to know before redistributing a **built** plugin. The VST3 wrapper
 comes from nice-plug, which reaches VST3 through `vst3-sys`, and `vst3-sys` is

@@ -3,6 +3,6 @@
 # A name here must match a `snapshot("<name>")` call, or scripts/screenshots.sh
 # says so rather than copying nothing quietly.
 
-cordis_editor
-cordis_scene
-cordis_keyboard
+piano_editor
+piano_scene
+piano_keyboard

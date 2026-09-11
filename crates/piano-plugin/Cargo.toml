@@ -1,0 +1,26 @@
+[package]
+name        = "piano-plugin"
+description = "Phonix Piano — a physically modelled grand piano. VST3 / CLAP."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+name       = "piano_plugin"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+nice-plug      = { workspace = true }
+nice-plug-egui = { workspace = true }
+piano         = { workspace = true }
+piano-ui      = { workspace = true }
+egui           = { workspace = true }
+serde_json     = { workspace = true }
+# The curated master chain. `phonix-fx` is pure DSP: no egui, no
+# sequencer, no plugin framework. The engine crate does not see it —
+# effects belong to the host, and out here the plugin is the host.
+phonix-fx      = { workspace = true }
+phonix-plugin  = { workspace = true }
+
+[dev-dependencies]
+egui_kittest   = { workspace = true }

@@ -651,63 +651,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cordis"
-version = "0.1.0"
-dependencies = [
- "hound",
- "libc",
- "phonix-fx",
- "phonix-legacy",
- "phonix-rt",
- "rustfft",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "cordis-plugin"
-version = "0.1.0"
-dependencies = [
- "cordis",
- "cordis-ui",
- "egui",
- "egui_kittest",
- "nice-plug",
- "nice-plug-egui",
- "phonix-fx",
- "phonix-plugin",
- "serde_json",
-]
-
-[[package]]
-name = "cordis-research"
-version = "0.1.0"
-dependencies = [
- "cordis",
- "hound",
- "libc",
- "rustfft",
-]
-
-[[package]]
-name = "cordis-ui"
-version = "0.1.0"
-dependencies = [
- "cordis",
- "directories",
- "egui",
- "egui_extras",
- "egui_kittest",
- "phonix-fx",
- "phonix-rt",
- "phonix-ui",
- "rfd",
- "serde",
- "serde_json",
- "wayland-sys",
-]
-
-[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2861,6 +2804,63 @@ dependencies = [
  "egui_extras",
  "image",
  "phonix-plugin",
+ "rfd",
+ "serde",
+ "serde_json",
+ "wayland-sys",
+]
+
+[[package]]
+name = "piano"
+version = "0.1.0"
+dependencies = [
+ "hound",
+ "libc",
+ "phonix-fx",
+ "phonix-legacy",
+ "phonix-rt",
+ "rustfft",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "piano-plugin"
+version = "0.1.0"
+dependencies = [
+ "egui",
+ "egui_kittest",
+ "nice-plug",
+ "nice-plug-egui",
+ "phonix-fx",
+ "phonix-plugin",
+ "piano",
+ "piano-ui",
+ "serde_json",
+]
+
+[[package]]
+name = "piano-research"
+version = "0.1.0"
+dependencies = [
+ "hound",
+ "libc",
+ "piano",
+ "rustfft",
+]
+
+[[package]]
+name = "piano-ui"
+version = "0.1.0"
+dependencies = [
+ "directories",
+ "egui",
+ "egui_extras",
+ "egui_kittest",
+ "phonix-fx",
+ "phonix-rt",
+ "phonix-ui",
+ "piano",
  "rfd",
  "serde",
  "serde_json",

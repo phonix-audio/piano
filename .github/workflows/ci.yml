@@ -28,12 +28,12 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             arch_dir: x86_64-linux
-            lib: libcordis_plugin.so
+            lib: libpiano_plugin.so
             vst3_ext: so
           - os: windows-latest
             platform: windows
             arch_dir: x86_64-win
-            lib: cordis_plugin.dll
+            lib: piano_plugin.dll
             vst3_ext: vst3
     runs-on: ${{ matrix.os }}
     steps:
@@ -55,11 +55,11 @@ jobs:
           if [ "${{ runner.os }}" = Linux ]; then
             cargo test --release --workspace
           else
-            cargo test --release -p cordis-plugin -p cordis-ui
+            cargo test --release -p piano-plugin -p piano-ui
           fi
 
       - name: Build the plugin
-        run: cargo build --release -p cordis-plugin
+        run: cargo build --release -p piano-plugin
 
       # Layout per the VST3 spec: <Name>.vst3/Contents/<arch>/<Name>.<ext>.
       # A CLAP is the same shared object under a .clap name.

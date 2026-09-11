@@ -6,22 +6,28 @@ tests exist because a comment alone loses to a rename.
 
 ## Identifiers a host resolves the plugin by
 
-    VST3 class id   PxCordisPiano001            (16 ASCII bytes, exactly)
-    CLAP id         com.phonix-audio.cordis
-    Plugin NAME     Cordis
+    VST3 class id   PxPhonixPiano001            (16 ASCII bytes, exactly)
+    CLAP id         com.phonix-audio.piano
+    Plugin NAME     Phonix Piano
     Plugin VENDOR   Phonix Audio
 
 The class id goes into every exported DAWproject `Vst3Plugin` device and into the
 header of every `.vstpreset`. NAME and VENDOR compose the preset directory
-Cubase's MediaBay indexes, `<presets>/Phonix Audio/Cordis/`. Change any of them
-and existing projects and preset banks point at a plugin no host can find.
+Cubase's MediaBay indexes, `<presets>/Phonix Audio/Phonix Piano/`. Change any of
+them and existing projects and preset banks point at a plugin no host can find.
 
-They were SET, once, at first publication under the phonix-audio organisation.
-Nothing had shipped before that, so there was exactly one moment in which
-choosing them was free. That moment is over.
+They have moved twice. The instrument shipped as "Phonix Marteau"
+(`PxMarteauModl001`), then as "Cordis" (`PxCordisPiano001`), and carries the
+name above now. Each move cost something, and this one cost the two tagged
+releases, which were deleted: nothing versioned stands behind those older ids.
+What keeps a saved session working across the moves is the sequencer's
+`RENAMED_DEVICES` table, old id to current id, never to nothing. A `.vstpreset`
+on disk does not follow: its bank is written under the directory above, and a
+bank written under an older name stays where it is.
 
-NAME does not repeat the vendor. A host prints VENDOR beside it already, so
-"Phonix Cordis" would only spend the plugin list's width saying it twice.
+NAME repeats the vendor on purpose. "Piano" alone is the word every host lists a
+dozen times over, and a plugin nobody can pick out of that list by name is worse
+off than one that spends a little width saying whose it is.
 
 A host application that resolves plugins by class id holds a copy of it in its
 own DAWproject export. Both sides assert against the literal, so a drift fails a
@@ -30,7 +36,7 @@ moved to
 the value above in the same change, or its export names a plugin no host can
 find. Nothing in this repository depends on it.
 
-Test: `cordis-plugin`, `frozen_identifiers`.
+Test: `piano-plugin`, `frozen_identifiers`.
 
 ## Parameter ids and persistence keys
 
@@ -61,9 +67,9 @@ defaults to 0.35, `release_noise` to 0.5, and `fx` to an empty chain. A session 
 fields existed relies on them, so removing a default is a silent data change
 rather than a compile error.
 
-This JSON is what a host's session file stores for a Cordis track.
+This JSON is what a host's session file stores for a Piano track.
 
-Tests: `cordis`, `the_patch_field_names_and_their_order_are_a_wire_format` and
+Tests: `piano`, `the_patch_field_names_and_their_order_are_a_wire_format` and
 `a_session_written_before_those_fields_still_loads`.
 
 ## The factory bank, names AND order
@@ -78,7 +84,7 @@ silently repoints saved projects at a different piano.
 
 Append only.
 
-Test: `cordis`, `the_factory_bank_is_a_wire_format`.
+Test: `piano`, `the_factory_bank_is_a_wire_format`.
 
 ## The master chain a patch carries
 
@@ -89,7 +95,7 @@ the rooms differ, and so do the shelf and the glue where the microphones move.
 What no preset and no user can change is WHICH effects run and in what order.
 That is what curated means here, and it is why the order is listed above.
 
-`CordisPatch::default()` is the first preset, name and values, and it carries
+`PianoPatch::default()` is the first preset, name and values, and it carries
 that preset's chain: a fresh instance plays what its window says. The field's
 serde default is a different thing, and the difference is the whole
 compatibility story: a patch written before `fx` existed deserialises to an
@@ -105,13 +111,13 @@ value)` pairs is read by `phonix_legacy` and renamed on the way in; the next
 save carries names. What the recipe writes for each kind, and the ranges and
 units of every parameter, live with the effect in `phonix_fx::effects`.
 
-Tests: `cordis`, `every_factory_preset_carries_its_own_chain`,
+Tests: `piano`, `every_factory_preset_carries_its_own_chain`,
 `the_default_patch_is_the_first_preset_chain_included`,
 `a_patch_written_before_fx_existed_has_no_chain`,
 `a_patch_written_with_the_old_chain_opens_named` and
-`the_recipe_names_only_what_the_build_has`; `cordis-plugin`,
+`the_recipe_names_only_what_the_build_has`; `piano-plugin`,
 `an_empty_chain_is_bit_identical` and `a_fresh_instance_carries_the_first_preset_chain`;
-`cordis-ui`, `the_engine_mirror_does_not_erase_an_fx_edit`.
+`piano-ui`, `the_engine_mirror_does_not_erase_an_fx_edit`.
 
 ## The `.vstpreset` byte layout
 

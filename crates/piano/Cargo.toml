@@ -1,0 +1,43 @@
+[package]
+name        = "piano"
+description = "A grand piano built from the physics: modal strings, a computed hammer/felt contact, and a soundboard in the loop."
+readme      = "../../README.md"
+keywords    = ["audio", "dsp", "piano", "physical-modeling", "synthesis"]
+categories  = ["multimedia::audio"]
+version.workspace    = true
+edition.workspace    = true
+license.workspace    = true
+authors.workspace    = true
+repository.workspace = true
+
+[lib]
+# Deliberately not a cdylib: the plugin crate is the shared object.
+crate-type = ["rlib"]
+
+[dependencies]
+# FxChainSpec: the chain a patch DESCRIBES. The engine never runs an
+# effect; the host does. Same reason solstice, nebula and aurora carry
+# this dependency.
+phonix-fx = { workspace = true }
+phonix-legacy = { workspace = true }
+phonix-rt = { workspace = true }
+serde = { workspace = true }
+
+# Scheduling only, and only on Linux: the worker threads that share a sample
+# have to run at the same real-time priority as the audio callback they are
+# synchronised with, or one of them gets preempted by the desktop and the whole
+# barrier waits out a scheduler quantum. Nothing in the DSP touches libc.
+[target.'cfg(target_os = "linux")'.dependencies]
+libc = "0.2"
+
+# There is no [features] table, and the absence is the contract. Cargo unifies
+# features across a resolved graph, so an optional `egui` here would be switched
+# on for the engine's OWN tests by any `cargo test --workspace`. Keeping the
+# editor in a separate crate is what makes "the engine never sees egui" true
+# rather than merely intended. Guarded in CI:
+#   cargo tree -p piano --edges normal | grep -qE '^(egui|eframe|winit|wgpu)' && exit 1
+
+[dev-dependencies]
+rustfft    = { workspace = true }
+hound      = { workspace = true }
+serde_json = { workspace = true }

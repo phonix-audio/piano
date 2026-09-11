@@ -1,6 +1,6 @@
 # What this is built on
 
-Cordis is an implementation of published work, not an invention. Every part of
+Piano is an implementation of published work, not an invention. Every part of
 the model comes from somewhere, and this file says where, so a reader can check
 the code against the paper it claims to follow.
 
@@ -65,7 +65,7 @@ the standard reference behind the parts nobody writes a paper about.
 
 ## Reading the code against them
 
-Start at `crates/cordis/src/lib.rs`, which names the chain in
+Start at `crates/piano/src/lib.rs`, which names the chain in
 order. Each module
 opens with what it implements and whose formulation it follows. Constants that
 came from a table say which table; the ones that were set by ear say that

@@ -1,4 +1,4 @@
-Cordis
+Phonix Piano
 Copyright (c) 2026 Phonix Audio
 Licensed under MIT or Apache-2.0, at your option (LICENSE-MIT, LICENSE-APACHE).
 
@@ -13,9 +13,9 @@ This repository carries work by others under their own terms:
 
   Noto Serif Display (Regular), the editor's display face.
   Copyright 2022 The Noto Project Authors. SIL Open Font License 1.1.
-  crates/cordis-ui/assets/NotoSerifDisplay-Regular.ttf, OFL.txt beside it.
+  crates/piano-ui/assets/NotoSerifDisplay-Regular.ttf, OFL.txt beside it.
 
-  The per-note coefficient tables in crates/cordis/src/piano_tables.rs are
+  The per-note coefficient tables in crates/piano/src/piano_tables.rs are
   ported from the faust-stk piano by Romain Michon, after the Synthesis
   ToolKit (STK) piano by Perry R. Cook and Gary P. Scavone, under the STK
   license.

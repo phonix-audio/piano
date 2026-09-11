@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/cordis",
-    "crates/cordis-research",
-    "crates/cordis-ui",
-    "crates/cordis-plugin",
+    "crates/piano",
+    "crates/piano-research",
+    "crates/piano-ui",
+    "crates/piano-plugin",
 ]
 # The SDK mirror is its own workspace; its crates are reached by path.
 exclude = ["vendor/phonix-sdk"]
@@ -14,11 +14,11 @@ version    = "0.1.0"
 edition    = "2021"
 license    = "MIT OR Apache-2.0"
 authors    = ["Phonix Audio"]
-repository = "https://github.com/phonix-audio/cordis"
+repository = "https://github.com/phonix-audio/piano"
 
 [workspace.dependencies]
-cordis    = { path = "crates/cordis",    version = "0.1.0" }
-cordis-ui = { path = "crates/cordis-ui", version = "0.1.0" }
+piano    = { path = "crates/piano",    version = "0.1.0" }
+piano-ui = { path = "crates/piano-ui", version = "0.1.0" }
 
 # ── THE SDK ──────────────────────────────────────────────────────────────
 # phonix-sdk, mirrored under vendor/ as a squashed subtree so a clone of this
