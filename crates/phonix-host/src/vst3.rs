@@ -1923,13 +1923,13 @@ mod tests {
     /// the sequencer's playhead onto the structure the plugin reads.
     #[test]
     fn a_hosted_plugin_is_told_where_the_transport_is() {
-        let Some(path) = super::find_by_name("Cordis") else {
-            eprintln!("Cordis is not installed; skipping");
+        let Some(path) = super::find_by_name("Phonix Piano") else {
+            eprintln!("Phonix Piano is not installed; skipping");
             return;
         };
         let mut p = match super::Vst3Plugin::load(&path, 48_000.0, 128) {
             Ok(p) => p,
-            Err(e) => { eprintln!("Cordis did not load ({e}); skipping"); return }
+            Err(e) => { eprintln!("Phonix Piano did not load ({e}); skipping"); return }
         };
 
         // Stopped, at the top: the plugin is told the tempo and the metre,
@@ -1978,16 +1978,16 @@ mod tests {
         assert!(out.iter().all(|s| s.is_finite()));
     }
 
-    /// The factory of an installed bundle declares what it is. Cordis
+    /// The factory of an installed bundle declares what it is. Phonix Piano
     /// registers Instrument|Piano|Synth; a scan that shows it needs no
     /// second literal for that.
     #[test]
     fn the_scan_reads_the_sub_categories_the_factory_declares() {
-        let Some(path) = super::find_by_name("Cordis") else {
-            eprintln!("Cordis is not installed; skipping");
+        let Some(path) = super::find_by_name("Phonix Piano") else {
+            eprintln!("Phonix Piano is not installed; skipping");
             return;
         };
-        let info = super::scan_all().into_iter().find(|p| p.path == path).expect("Cordis scanned");
+        let info = super::scan_all().into_iter().find(|p| p.path == path).expect("Phonix Piano scanned");
         assert!(info.is_instrument, "{:?}", info.subcategories);
         assert!(!info.is_effect, "{:?}", info.subcategories);
         assert_eq!(info.vendor, "Phonix Audio");
@@ -2030,7 +2030,7 @@ mod tests {
     #[test]
     fn a_bundle_built_for_this_host_resolves() {
         let fx = Fixture::new("ok");
-        let bundle = fx.bundle(fx.path(), "Cordis", VST3_ARCH_DIR, VST3_MODULE_EXT);
+        let bundle = fx.bundle(fx.path(), "Phonix Piano", VST3_ARCH_DIR, VST3_MODULE_EXT);
         let module = resolve_module_path(&bundle).expect("this host's own arch must resolve");
         assert!(module.starts_with(&bundle));
         assert_eq!(module.parent().unwrap().file_name().unwrap(), VST3_ARCH_DIR);
@@ -2098,7 +2098,7 @@ mod tests {
         );
         let info = found
             .iter()
-            .find(|p| p.name == "Cordis")
+            .find(|p| p.name == "Phonix Piano")
             .unwrap_or(&found[0]);
         eprintln!("loading {} from {}", info.name, info.path.display());
 
@@ -2108,9 +2108,9 @@ mod tests {
         // The id a session stores to find this plugin again on another machine.
         // Asserted against the literal rather than a hand-computed string, so
         // this also pins the byte ORDER, where VST3 has a platform trap.
-        if info.name == "Cordis" {
+        if info.name == "Phonix Piano" {
             let expected =
-                String::from_utf8_lossy(&phonix_plugin::vstpreset::class_id_to_hex(b"PxCordisPiano001"))
+                String::from_utf8_lossy(&phonix_plugin::vstpreset::class_id_to_hex(b"PxPhonixPiano001"))
                     .into_owned();
             assert_eq!(plugin.class_id_hex(), expected, "class id read back wrong");
         }
@@ -2136,8 +2136,8 @@ mod tests {
     #[test]
     #[ignore]
     fn the_parameter_cache_carries_what_the_plugin_publishes() {
-        let Some(path) = find_by_name("Cordis") else {
-            eprintln!("Cordis is not installed; skipping");
+        let Some(path) = find_by_name("Phonix Piano") else {
+            eprintln!("Phonix Piano is not installed; skipping");
             return;
         };
         let plugin = Vst3Plugin::load(&path, 48_000.0, 512).expect("load");
@@ -2170,8 +2170,8 @@ mod tests {
     #[test]
     #[ignore]
     fn a_hosted_piano_gets_its_sustain_pedal() {
-        let Some(path) = find_by_name("Cordis") else {
-            eprintln!("Cordis is not installed; skipping");
+        let Some(path) = find_by_name("Phonix Piano") else {
+            eprintln!("Phonix Piano is not installed; skipping");
             return;
         };
 
@@ -2210,8 +2210,8 @@ mod tests {
     #[test]
     #[ignore]
     fn a_preset_change_puts_the_edited_chain_back() {
-        let Some(path) = find_by_name("Cordis") else {
-            eprintln!("Cordis is not installed; skipping");
+        let Some(path) = find_by_name("Phonix Piano") else {
+            eprintln!("Phonix Piano is not installed; skipping");
             return;
         };
         let preset_id = Vst3Plugin::load(&path, 48_000.0, 512)
