@@ -411,8 +411,7 @@ impl Vst3Plugin for CordisPlugin {
     const VST3_CLASS_ID: [u8; 16] = *b"PxCordisPiano001";
     // Piano first: a host that browses by category files us under pianos, where
     // someone looking for one actually looks, rather than only among synths.
-    const VST3_SUBCATEGORIES: &'static [Vst3SubCategory] =
-        &[Vst3SubCategory::Instrument, Vst3SubCategory::Piano, Vst3SubCategory::Synth];
+    const VST3_SUBCATEGORIES: &'static [Vst3SubCategory] = &[Vst3SubCategory::Instrument, Vst3SubCategory::Piano, Vst3SubCategory::Synth];
 }
 
 nice_export_clap!(CordisPlugin);
