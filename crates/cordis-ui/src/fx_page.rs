@@ -316,7 +316,7 @@ pub fn draw(ui: &mut Ui, r: Rect, spec: &mut ChainSpec, state: &mut FxPageState)
                 state.reverb_picker.current_idx = idx;
                 let strip = Rect::from_min_size(Pos2::new(x0, y), Vec2::new(col.width() - 8.0, 26.0));
                 let mut cui = ui.new_child(egui::UiBuilder::new().max_rect(strip));
-                if let Some(new_idx) = picker_ui(&mut cui, &PresetPickerStyle { salt: "cordis_reverb_type", accent: GOLD, dim: TEXT_DIM }, &mut state.reverb_picker, &names) {
+                if let Some(new_idx) = picker_ui(&mut cui, &PresetPickerStyle { salt: "cordis_reverb_type", accent: GOLD, dim: TEXT_DIM, name_in_combo: true }, &mut state.reverb_picker, &names) {
                     if let Some(v) = variants.get(new_idx) {
                         a.set("type", *v);
                     }

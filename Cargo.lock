@@ -2818,7 +2818,7 @@ dependencies = [
 
 [[package]]
 name = "phonix-dsp"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "rustfft",
  "serde",
@@ -2826,7 +2826,7 @@ dependencies = [
 
 [[package]]
 name = "phonix-fx"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "phonix-dsp",
  "serde",
@@ -2834,7 +2834,7 @@ dependencies = [
 
 [[package]]
 name = "phonix-legacy"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "phonix-fx",
  "serde",
@@ -2842,7 +2842,7 @@ dependencies = [
 
 [[package]]
 name = "phonix-plugin"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -2850,15 +2850,16 @@ dependencies = [
 
 [[package]]
 name = "phonix-rt"
-version = "0.2.0"
+version = "0.3.0"
 
 [[package]]
 name = "phonix-ui"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "directories",
  "egui",
  "egui_extras",
+ "image",
  "phonix-plugin",
  "rfd",
  "serde",
