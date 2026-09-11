@@ -20,9 +20,10 @@ and damping; Chaigne & Askenfelt (JASA 1994) for the hammer felt.
 
 ## Status
 
-Released: `v0.1.0` ships Linux and Windows VST3 and CLAP bundles from the
-Releases page, built by CI from the tag. The model runs and the tests are
-green; what is open is below, and the first line is what one hears.
+Not versioned yet: what is published is a nightly, one rolling prerelease
+carrying the Linux and Windows VST3 and CLAP bundles built from the head of
+main. The model runs and the tests are green; what is open is below, and the
+first line is what one hears.
 
 | open | |
 |---|---|
@@ -77,7 +78,7 @@ table in `crates/cordis/Cargo.toml`, and the absence is the contract.
 
 ## Installing
 
-Take the archive for your platform from the Releases page and unzip it:
+Take the archive for your platform from the nightly prerelease and unzip it:
 
     Linux      Cordis.vst3/  ->  ~/.vst3/            Cordis.clap  ->  ~/.clap/
     Windows    Cordis.vst3\  ->  C:\Program Files\Common Files\VST3\
@@ -119,8 +120,8 @@ from the Phonix SDK, mirrored under `vendor/phonix-sdk` as a squashed git
 subtree so a clone of this repository alone builds; nothing under `vendor/`
 is edited here, and `git subtree pull --prefix vendor/phonix-sdk <sdk> <tag>
 --squash` moves it. `.github/workflows/ci.yml` builds and tests on Linux and
-Windows on every push, and a tag `v*` publishes both bundles as a release;
-none of it needs a secret.
+Windows on every push, and moves the rolling `nightly` prerelease to what it
+built; none of it needs a secret.
 
 ## Measurement tools
 
