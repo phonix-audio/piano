@@ -200,16 +200,6 @@ pub fn plugin_chrome<P: preset_picker::Preset>(
             ui.add_space(CHROME_GAP);
         }
 
-        // Optional mode pills.
-        for (i, pill) in chrome.mode_pills.iter().enumerate() {
-            let col = if pill.selected { chrome.accent } else { chrome.dim };
-            let text = RichText::new(pill.label).color(col).strong().size(CHROME_PILL_PT);
-            if ui.selectable_label(pill.selected, text).clicked() {
-                pill_clicked = Some(i);
-            }
-        }
-        if !chrome.mode_pills.is_empty() { ui.add_space(CHROME_GAP); }
-
         // Preset picker — fixed 200 px wide widget that handles its
         // own internal layout. Identity-only style.
         let style = preset_picker::PresetPickerStyle {
@@ -229,13 +219,24 @@ pub fn plugin_chrome<P: preset_picker::Preset>(
             load_clicked = true;
         }
 
-        // The plugin's own switches.
+        // The plugin's own switches, then the pages it can show. The order is
+        // the same in every plugin: what the patch is, then what to do with
+        // it, then which page of it to look at.
         if !chrome.buttons.is_empty() { ui.add_space(CHROME_GAP); }
         for (i, b) in chrome.buttons.iter().enumerate() {
             let col = if b.on { chrome.accent } else { chrome.dim };
             let text = RichText::new(b.label).color(col).strong().size(CHROME_PILL_PT);
             if ui.selectable_label(b.on, text).clicked() {
                 button_clicked = Some(i);
+            }
+        }
+
+        if !chrome.mode_pills.is_empty() { ui.add_space(CHROME_GAP); }
+        for (i, pill) in chrome.mode_pills.iter().enumerate() {
+            let col = if pill.selected { chrome.accent } else { chrome.dim };
+            let text = RichText::new(pill.label).color(col).strong().size(CHROME_PILL_PT);
+            if ui.selectable_label(pill.selected, text).clicked() {
+                pill_clicked = Some(i);
             }
         }
 
