@@ -1,13 +1,17 @@
-# Builds, tests and bundles the plugin on Linux and Windows. A tag `v*` also
-# publishes both bundles as a GitHub release. Nothing here needs a secret:
-# every crate the plugin builds from is in this repository or on crates.io.
+# Builds, tests and bundles the plugin on Linux and Windows, and hands the pair
+# out as a rolling `nightly` prerelease. There are no version tags and no
+# versioned releases: what is published is the head of main, built. Nothing
+# here needs a secret: every crate the plugin builds from is in this repository
+# or on crates.io.
 name: ci
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
   pull_request:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -75,29 +79,31 @@ jobs:
           name: ${{ matrix.platform }}
           path: dist/*.zip
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
+  nightly:
+    # Main only, and never a pull request: a fork must not be able to move what
+    # the nightly link hands people.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     steps:
-      # Checkout first: it cleans the workspace, and would take the
-      # downloaded bundles with it.
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: docs/releases
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
-      # Notes written for the tag under docs/releases/<tag>.md; the commit
-      # list otherwise.
-      - name: Publish the release
+
+      # One rolling prerelease, moved to the commit it was built from, so the
+      # download link never changes and never names a version that does not
+      # exist. Deleted and recreated rather than edited: `gh release upload
+      # --clobber` leaves an asset behind when a platform's name changes.
+      - name: Publish the nightly
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          NOTES="docs/releases/$GITHUB_REF_NAME.md"
-          if [ -f "$NOTES" ]; then
-            gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --notes-file "$NOTES"
-          else
-            gh release create "$GITHUB_REF_NAME" dist/*.zip --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
-          fi
+          gh release delete nightly --repo "$GITHUB_REPOSITORY" --cleanup-tag --yes || true
+          gh release create nightly dist/*.zip \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "nightly" \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --notes "The head of main, bundled on $(date -u +%Y-%m-%d) from ${GITHUB_SHA:0:7}. Unsigned, and not a release."
