@@ -42,17 +42,22 @@ struct BandPass {
 
 impl BandPass {
     fn new(freq: f32, q: f32, sample_rate: f32) -> Self {
+        let mut f = BandPass { b0: 0.0, b2: 0.0, a1: 0.0, a2: 0.0, z1: 0.0, z2: 0.0 };
+        f.set(freq, q, sample_rate);
+        f
+    }
+
+    /// Move the filter to a new centre frequency, keeping what it is
+    /// ringing. A vowel that drifts retunes at control rate; rebuilding the
+    /// filter instead would clear the resonance every time it moved.
+    fn set(&mut self, freq: f32, q: f32, sample_rate: f32) {
         let w0 = 2.0 * PI * freq as f64 / sample_rate as f64;
         let alpha = w0.sin() / (2.0 * q as f64);
         let a0 = 1.0 + alpha;
-        BandPass {
-            b0: alpha / a0,
-            b2: -alpha / a0,
-            a1: (-2.0 * w0.cos()) / a0,
-            a2: (1.0 - alpha) / a0,
-            z1: 0.0,
-            z2: 0.0,
-        }
+        self.b0 = alpha / a0;
+        self.b2 = -alpha / a0;
+        self.a1 = (-2.0 * w0.cos()) / a0;
+        self.a2 = (1.0 - alpha) / a0;
     }
 
     #[inline]
@@ -76,6 +81,7 @@ pub struct FormantBank {
     filters: [BandPass; FORMANT_COUNT],
     gains: [f32; FORMANT_COUNT],
     sample_rate: f32,
+    tuned_to: (f32, bool),
 }
 
 impl FormantBank {
@@ -84,23 +90,29 @@ impl FormantBank {
             filters: std::array::from_fn(|_| BandPass::new(1000.0, 1.0, sample_rate)),
             gains: FORMANT_GAIN,
             sample_rate,
+            tuned_to: (f32::NAN, false),
         };
         bank.set_vowel(0.0, false);
         bank
     }
 
     /// `vowel` from 0 (ah) through eh, ee, oh to 1 (oo), interpolated
-    /// between neighbours. Retuning the filters clears their state.
+    /// between neighbours. The filters keep what they are ringing, and a
+    /// vowel that has not moved costs nothing.
     pub fn set_vowel(&mut self, vowel: f32, female: bool) {
-        let formants = if female { &FEMALE_FORMANTS } else { &MALE_FORMANTS };
         let vowel = vowel.clamp(0.0, 1.0);
+        if self.tuned_to == (vowel, female) {
+            return;
+        }
+        self.tuned_to = (vowel, female);
+        let formants = if female { &FEMALE_FORMANTS } else { &MALE_FORMANTS };
         let pos = vowel * (VOWEL_COUNT - 1) as f32;
         let idx_a = (pos as usize).min(VOWEL_COUNT - 2);
         let idx_b = idx_a + 1;
         let frac = pos - idx_a as f32;
         for f in 0..FORMANT_COUNT {
             let freq = formants[idx_a][f] * (1.0 - frac) + formants[idx_b][f] * frac;
-            self.filters[f] = BandPass::new(freq, FORMANT_Q[f], self.sample_rate);
+            self.filters[f].set(freq, FORMANT_Q[f], self.sample_rate);
         }
     }
 
@@ -152,6 +164,38 @@ mod tests {
         let ee_f2 = level_at(&mut bank, 2290.0, sr);
         let ee_low = level_at(&mut bank, 1090.0, sr);
         assert!(ee_f2 > 2.0 * ee_low, "ee: F2 {ee_f2} against {ee_low}");
+    }
+
+    /// A vowel that has not moved must not disturb what the filters are
+    /// ringing: the bank is retuned at control rate, and rebuilding it
+    /// there would chop the resonance fifteen hundred times a second.
+    #[test]
+    fn a_still_vowel_leaves_the_resonance_alone() {
+        let sr = 48_000.0;
+        let mut bank = FormantBank::new(sr);
+        bank.set_vowel(0.2, false);
+        let excite = |bank: &mut FormantBank, retune: bool| {
+            bank.reset();
+            let mut tail = Vec::new();
+            for i in 0..2000 {
+                let x = if i < 64 { 1.0 } else { 0.0 };
+                if retune {
+                    bank.set_vowel(0.2, false);
+                }
+                let y = bank.process(x);
+                if i >= 1000 {
+                    tail.push(y);
+                }
+            }
+            tail
+        };
+        let free = excite(&mut bank, false);
+        let retuned = excite(&mut bank, true);
+        assert_eq!(free, retuned, "retuning to the same vowel changed the ringing");
+        assert!(
+            free.iter().fold(0.0f32, |a, v| a.max(v.abs())) > 1e-6,
+            "the probe left nothing ringing to compare"
+        );
     }
 
     #[test]
