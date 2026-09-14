@@ -3,13 +3,19 @@
 //! Described here, run nowhere: the engine owns no effects. The host builds a
 //! live chain from this description.
 //!
-//! Four effects in a fixed order -- shelf, glue, room, ceiling. Which ones and
+//! Four effects in a fixed order -- shelf, glue, room, width. Which ones and
 //! in which order is not a preset's business; what each one is set to is.
+//! The width is where the listener sits against the soundboard, with the
+//! bass mono below where a wide image only blurs.
 
 use phonix_fx::{ChainSpec, SlotSpec};
 
 /// Slots the chain occupies. Frozen with the order below.
 pub const FX_SLOTS: usize = 4;
+
+/// Below this the image is mono: a low string's fundamental gains nothing
+/// from width.
+const MONO_BELOW_HZ: f32 = 120.0;
 
 /// The shelf: band 0 of the EQ, a low shelf under its automatic type.
 const SHELF_HZ: f32 = 90.0;
@@ -28,8 +34,8 @@ pub struct Room {
 
 /// Build the chain. Units are the effects' own: the EQ in Hz and dB, the
 /// compressor's threshold in dB and its times in seconds, the reverb
-/// normalised except a pre-delay in seconds, the limiter's ceiling in dB and
-/// its release in milliseconds.
+/// normalised except a pre-delay in seconds, the width as a factor and its
+/// mono corner in Hz.
 pub fn chain(shelf_db: f32, comp_thresh_db: f32, room: Room) -> ChainSpec {
     ChainSpec::new(vec![
         // Tone before anything reacts to level. A modelled string radiates
@@ -60,12 +66,11 @@ pub fn chain(shelf_db: f32, comp_thresh_db: f32, room: Room) -> ChainSpec {
             .with("predelay", 0.008_f32)
             .with("width", 1.0_f32)
             .mix(room.mix),
-        // Safety, not character. The three above can add gain, and every
-        // preset gets the same ceiling: how loud is too loud is not a musical
-        // choice.
-        SlotSpec::new("brickwall-limiter")
-            .with("ceiling", -0.3_f32)
-            .with("release", 50.0_f32),
+        // The listener's seat: the image as the microphones set it, the
+        // bass mono below where width only blurs.
+        SlotSpec::new("stereo-imager")
+            .with("width", 1.0_f32)
+            .with("mono-freq", MONO_BELOW_HZ),
     ])
 }
 
@@ -89,7 +94,7 @@ mod tests {
     #[test]
     fn the_order_and_the_kinds_are_frozen() {
         let spec = concert_hall();
-        assert_eq!(spec.kinds().collect::<Vec<_>>(), ["parametric-eq", "compressor", "reverb", "brickwall-limiter"]);
+        assert_eq!(spec.kinds().collect::<Vec<_>>(), ["parametric-eq", "compressor", "reverb", "stereo-imager"]);
         assert_eq!(spec.len(), FX_SLOTS);
         assert!(spec.slots.iter().all(|s| s.enabled));
     }

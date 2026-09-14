@@ -139,6 +139,10 @@ pub const LAST_DAMPED: u8 = 88;
 pub const COUPLE_K: u32 = 1;
 
 
+/// The lowest note the instrument plays, in Hz: A0. What holds a peak
+/// holds it for two of its periods.
+pub const LOWEST_HZ: f32 = 27.5;
+
 #[derive(Debug, Clone)]
 pub enum PianoCommand {
     NoteOn(u8, u8),

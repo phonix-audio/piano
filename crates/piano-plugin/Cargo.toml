@@ -20,6 +20,7 @@ serde_json     = { workspace = true }
 # sequencer, no plugin framework. The engine crate does not see it —
 # effects belong to the host, and out here the plugin is the host.
 phonix-fx      = { workspace = true }
+phonix-dsp     = { workspace = true }   # the fader after the chain
 phonix-plugin  = { workspace = true }
 
 [dev-dependencies]

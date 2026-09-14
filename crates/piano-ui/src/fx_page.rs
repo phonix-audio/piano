@@ -4,7 +4,7 @@
 //! curated means, and the recipe lives with the patch. Everything inside each
 //! effect is. Drawn with Piano's own widgets, on the same lacquer, in the
 //! same clusters as the instrument page, and each effect shows what it does:
-//! the EQ its response, the compressor and the ceiling their transfer, from
+//! the EQ its response, the compressor its transfer, from
 //! the same numbers the audio thread runs.
 
 use egui::{Align2, FontId, Pos2, Rect, Sense, Shape, Stroke, Ui, Vec2};
@@ -332,16 +332,13 @@ pub fn draw(ui: &mut Ui, r: Rect, spec: &mut ChainSpec, state: &mut FxPageState)
                 y += 2.0 * PITCH_Y;
                 caption(ui, Pos2::new(x0, y), "the room past the microphones: the\nmodel has no walls of its own");
             }
-            "brickwall-limiter" => {
-                let ceiling = a.get("ceiling");
-                transfer_plot(ui, plot, |din| din.min(ceiling));
-                y += PLOT_H + 12.0;
+            "stereo-imager" => {
                 let at = |c: usize| Pos2::new(x0 + c as f32 * PITCH_X, y);
-                knob(ui, at(0), "Ceiling", &mut a, "ceiling");
-                knob(ui, at(1), "Release", &mut a, "release");
+                knob(ui, at(0), "Width", &mut a, "width");
+                knob(ui, at(1), "Mono", &mut a, "mono-freq");
                 changed |= mix_knob(ui, at(2), a.slot);
                 y += PITCH_Y;
-                caption(ui, Pos2::new(x0, y), "nothing leaves above the ceiling,\nwhatever the three slots before it add");
+                caption(ui, Pos2::new(x0, y), "where the listener sits against the\nsoundboard; the bass mono below");
             }
             _ => {
                 // A kind without a bespoke panel: every float it declares, in rows of four.

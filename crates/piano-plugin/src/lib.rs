@@ -14,6 +14,7 @@ use piano::{PianoCommand, PianoEngine, PianoMeterState, PianoPatch};
 use piano::state_buffer::{meter_channel, SharedReader, Writer};
 mod fx;
 use phonix_fx::{Chain, ChainSpec, Musical, Transport};
+use phonix_dsp::fader::Fader;
 use std::sync::atomic::{AtomicU64, Ordering};
 use fx::FxLink;
 use phonix_plugin::vstpreset::{self, ParamValue};
@@ -38,6 +39,9 @@ pub struct PianoPlugin {
     /// saved before this existed drives it through no code path that fills it,
     /// so it stays a documented no-op and the audio is unchanged.
     fx_chain: Option<Chain>,
+    /// The family's fader, after the chain: nothing leaves past full
+    /// scale. `None` until `initialize` knows the sample rate.
+    fader: Option<Fader>,
     /// The chain between the editor and the audio thread. NOT persisted: the
     /// patch carries the chain across a save. It exists because neither side
     /// can see the other's copy.
@@ -58,6 +62,7 @@ impl Default for PianoPlugin {
             engine: None, tx, meter: Some(mr), pending: Some((rx, mw)),
             buf: Vec::new(), buf_l: Vec::new(), buf_r: Vec::new(), presets, last_preset: 0, last_knobs: None,
             fx_chain: None,
+            fader: None,
             fx_link: Arc::new(FxLink::new(ChainSpec::default())), fx_seen: 0,
         }
     }
@@ -269,10 +274,10 @@ impl Plugin for PianoPlugin {
             Some(c) => c.prepare(cfg.sample_rate, max_block),
             None => self.fx_chain = Some(Chain::new(cfg.sample_rate, max_block)),
         }
-        // Zero while the chain is empty, and again after a rate change until a
-        // preset fills it. The limiter's lookahead is the only slot that ever
-        // makes it non-zero.
-        let lat = self.fx_chain.as_ref().map_or(0, |c| c.latency_samples());
+        self.fader = Some(Fader::new(cfg.sample_rate, piano::engine::LOWEST_HZ));
+        // The fader's lookahead, plus whatever the chain adds once a preset
+        // fills it.
+        let lat = self.fx_chain.as_ref().map_or(0, |c| c.latency_samples()) + Fader::LATENCY;
         ctx.set_latency_samples(lat as u32);
 
         self.buf = vec![0.0; cfg.max_buffer_size as usize * 2];
@@ -316,7 +321,7 @@ impl Plugin for PianoPlugin {
                     // automation, where no click happened in the window.
                     if let Some(c) = self.fx_chain.as_mut() {
                         fx::apply(c, &p.fx);
-                        ctx.set_latency_samples(c.latency_samples() as u32);
+                        ctx.set_latency_samples((c.latency_samples() + Fader::LATENCY) as u32);
                     }
                     self.fx_seen = self.fx_link.publish(p.fx.clone());
                 }
@@ -325,7 +330,7 @@ impl Plugin for PianoPlugin {
                 // with.
                 if let Some(c) = self.fx_chain.as_mut() {
                     fx::disengage(c);
-                    ctx.set_latency_samples(c.latency_samples() as u32);
+                    ctx.set_latency_samples((c.latency_samples() + Fader::LATENCY) as u32);
                 }
                 self.fx_seen = self.fx_link.publish(ChainSpec::default());
             }
@@ -335,7 +340,7 @@ impl Plugin for PianoPlugin {
             let mut latency = None;
             self.fx_link.apply_if_new(&mut self.fx_seen, |spec| {
                 fx::apply(c, spec);
-                latency = Some(c.latency_samples() as u32);
+                latency = Some((c.latency_samples() + Fader::LATENCY) as u32);
             });
             if let Some(l) = latency {
                 ctx.set_latency_samples(l);
@@ -380,6 +385,9 @@ impl Plugin for PianoPlugin {
         for i in 0..n { self.buf_l[i] = self.buf[i * 2]; self.buf_r[i] = self.buf[i * 2 + 1]; }
         if let Some(c) = self.fx_chain.as_mut() {
             c.process(&mut self.buf_l[..n], &mut self.buf_r[..n], &[], Transport::default(), Musical::default());
+        }
+        if let Some(f) = self.fader.as_mut() {
+            f.process(&mut self.buf_l[..n], &mut self.buf_r[..n]);
         }
         let ch = buffer.as_slice();
         if ch.len() >= 2 {
@@ -483,5 +491,75 @@ mod fx_chain_compat {
         let held = p.patch_state.read().unwrap().fx.clone();
         assert_eq!(held, piano::patch::factory_presets()[0].fx);
         assert_eq!(held.slots.len(), piano::fx::FX_SLOTS);
+    }
+}
+
+/// The factory bank against the fader.
+#[cfg(test)]
+mod bank {
+    use super::*;
+    use phonix_dsp::fader::Fader;
+    use piano::engine::{PianoCommand, PianoEngine};
+    use piano::patch::{factory_presets_tagged, PianoPatch};
+
+    fn db(x: f32) -> f32 {
+        20.0 * x.max(1e-9).log10()
+    }
+
+    /// What one preset does under a fortissimo chord through the chain
+    /// and the fader: the bare engine's peak, the output's peak, the
+    /// output rms and the deepest the fader went, all in dB.
+    fn measure(preset: &PianoPatch) -> (f32, f32, f32, f32) {
+        let sr = 48_000.0f32;
+        let block = 256usize;
+        let (mut eng, tx, _mr) = PianoEngine::new_for_plugin(sr);
+        tx.send(PianoCommand::LoadPatch(Box::new(preset.clone()))).unwrap();
+        let mut chain = Chain::new(sr, block);
+        fx::apply(&mut chain, &preset.fx);
+        let mut fader = Fader::new(sr, piano::engine::LOWEST_HZ);
+        let mut buf = vec![0.0f32; block * 2];
+        eng.process_audio(&mut buf, 2);
+        for n in [36u8, 48, 55, 60, 64, 67] {
+            tx.send(PianoCommand::NoteOn(n, 127)).unwrap();
+        }
+        let (mut l, mut r) = (vec![0.0f32; block], vec![0.0f32; block]);
+        let (mut raw_peak, mut out_peak, mut out_sq, mut n, mut deepest) = (0.0f32, 0.0f32, 0.0f64, 0usize, 1.0f32);
+        for _ in 0..((1.5 * sr) as usize / block) {
+            buf.fill(0.0);
+            eng.process_audio(&mut buf, 2);
+            for k in 0..block {
+                l[k] = buf[k * 2];
+                r[k] = buf[k * 2 + 1];
+            }
+            chain.process(&mut l, &mut r, &[], Transport::default(), Musical::default());
+            fader.process(&mut l, &mut r);
+            deepest = deepest.min(fader.gain());
+            raw_peak = raw_peak.max(buf.iter().fold(0.0f32, |m, x| m.max(x.abs())));
+            out_peak = out_peak.max(l.iter().chain(r.iter()).fold(0.0f32, |m, x| m.max(x.abs())));
+            out_sq += l.iter().chain(r.iter()).map(|x| (*x as f64).powi(2)).sum::<f64>();
+            n += buf.len();
+        }
+        (db(raw_peak), db(out_peak), db((out_sq / n as f64).sqrt() as f32), db(deepest))
+    }
+
+    /// The most the fader may take from a preset's chord, in dB. Past it
+    /// the fader is heard working.
+    const LEAN_DB: f32 = 2.0;
+
+    /// Every preset under a fortissimo six-note chord leaves under full
+    /// scale with the fader idle within a hearing threshold.
+    #[test]
+    #[cfg_attr(debug_assertions, ignore = "runs the whole bank; release only")]
+    fn every_preset_sits_under_full_scale() {
+        println!("{:<28} {:>8} {:>8} {:>8} {:>8}", "preset", "raw pk", "out pk", "out rms", "fader");
+        let mut failed = Vec::new();
+        for p in factory_presets_tagged() {
+            let (pk, out, rms, fader) = measure(&p);
+            println!("{:<28} {:>8.1} {:>8.1} {:>8.1} {:>8.1}", p.name, pk, out, rms, fader);
+            if fader < -LEAN_DB || out > 0.1 {
+                failed.push(format!("{}: out {out:+.1} dBFS, fader {fader:+.1} dB", p.name));
+            }
+        }
+        assert!(failed.is_empty(), "{}", failed.join("\n"));
     }
 }

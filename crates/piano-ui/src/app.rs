@@ -595,6 +595,26 @@ mod tests {
         h.snapshot("piano_editor");
     }
 
+    /// The effects page, on the first preset's chain.
+    #[test]
+    #[ignore = "needs a rendering backend"]
+    fn piano_effects_snapshot() {
+        let (tx, _rx) = mpsc::channel();
+        let (mut w, r) = meter_channel::<PianoMeterState>();
+        {
+            let s = w.edit();
+            s.active_voices = 3;
+            s.peak_l = 0.42;
+            s.peak_r = 0.55;
+            w.publish();
+        }
+        let mut app = PianoApp::new(tx, r);
+        app.set_tab(1);
+        let mut h = harness(app);
+        h.run_steps(3);
+        h.snapshot("piano_effects");
+    }
+
     /// The keys on their own, at the size they are actually drawn, so a change
     /// to the layout shows up as a keyboard and not as a wall of pixels.
     #[test]

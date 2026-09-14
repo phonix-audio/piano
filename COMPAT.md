@@ -88,7 +88,7 @@ Test: `piano`, `the_factory_bank_is_a_wire_format`.
 
 ## The master chain a patch carries
 
-    slots   parametric eq, glue compression, room, safety ceiling
+    slots   parametric eq, glue compression, room, width
 
 Every factory preset carries its own settings for those four, inside its patch:
 the rooms differ, and so do the shelf and the glue where the microphones move.

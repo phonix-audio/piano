@@ -2832,6 +2832,7 @@ dependencies = [
  "egui_kittest",
  "nice-plug",
  "nice-plug-egui",
+ "phonix-dsp",
  "phonix-fx",
  "phonix-plugin",
  "piano",

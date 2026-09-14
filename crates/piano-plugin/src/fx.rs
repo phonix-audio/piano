@@ -206,7 +206,7 @@ mod tests {
         assert_eq!(at(&chain, SLOT_COMP, "threshold"), Value::F(-18.0));
         assert_eq!(at(&chain, SLOT_COMP, "mode"), Value::E("bus"));
         assert_eq!(chain.mix(SLOT_ROOM), 0.22);
-        assert_eq!(chain.latency_samples(), 239, "only the limiter's lookahead");
+        assert_eq!(chain.latency_samples(), 0, "no slot of the recipe looks ahead");
     }
 
     #[test]
@@ -244,36 +244,29 @@ mod tests {
         assert!(diff > 1e-4, "engaged chain left the signal alone (max diff {diff})");
     }
 
-    /// The recipe at the rates a host runs it at: the limiter's lookahead
-    /// follows the rate, and the ceiling holds at each.
+    /// The recipe at the rates a host runs it at: no slot of it looks
+    /// ahead, so the chain adds no latency at any rate.
     #[test]
-    fn the_chain_keeps_its_ceiling_and_lookahead_at_every_rate() {
+    fn the_chain_adds_no_latency_at_any_rate() {
         for sr in [44_100.0_f32, 48_000.0, 96_000.0] {
             let mut chain = Chain::new(sr, BLOCK);
             assert!(apply(&mut chain, &concert_hall()).is_clean());
-            assert_eq!(chain.latency_samples(), ((sr * 0.005) as usize).max(16) - 1, "{sr} Hz");
-            let ceiling = 10.0_f32.powf(-0.3 / 20.0) * 1.02;
-            let n = sr as usize;
-            let f = 220.0 / sr;
-            let mut l: Vec<f32> = (0..n).map(|i| 0.99 * (i as f32 * f * std::f32::consts::TAU).sin()).collect();
-            let mut r = l.clone();
-            chain.process(&mut l, &mut r, &[], Transport::default(), Musical::default());
-            let peak = l.iter().chain(r.iter()).fold(0.0f32, |m, s| m.max(s.abs()));
-            assert!(peak <= ceiling, "{sr} Hz: peak {peak} above the ceiling {ceiling}");
+            assert_eq!(chain.latency_samples(), 0, "{sr} Hz");
         }
     }
 
-    /// What the ceiling is there for: the three slots above it can add gain,
-    /// and the worst case the dial allows must still not leave full scale.
+    /// What the fader is there for: the slots can add gain, and the worst
+    /// case the dial allows must still not leave full scale.
     #[test]
-    fn the_curated_chain_stays_under_the_ceiling() {
+    fn the_curated_chain_through_the_fader_stays_under_full_scale() {
         let mut chain = Chain::new(SR, BLOCK);
         apply(&mut chain, &concert_hall());
-        let ceiling = 10.0_f32.powf(-0.3 / 20.0) * 1.02;
+        let mut fader = phonix_dsp::fader::Fader::new(SR, piano::engine::LOWEST_HZ);
         let (mut l, mut r) = tone(48_000, 0.99);
         run(&mut chain, &mut l, &mut r);
+        fader.process(&mut l, &mut r);
         let peak = l.iter().chain(r.iter()).fold(0.0f32, |m, s| m.max(s.abs()));
-        assert!(peak <= ceiling, "peak {peak} above the ceiling {ceiling}");
+        assert!(peak <= 1.0, "peak {peak} above full scale");
     }
 }
 

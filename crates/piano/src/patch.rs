@@ -120,10 +120,11 @@ impl Default for PianoPatch {
 ///
 /// The engine's own trim keeps a fortissimo six-note chord under full scale
 /// with NO chain in the way, which leaves a single fortissimo note 7.6 dB
-/// down. A preset carries a ceiling, so it can sit higher: at 1.5 a single
-/// fortissimo note peaks 3.7 dB below full scale and the chord is held at
-/// the ceiling, with a quarter of the knob still above. Measured at 48 kHz,
-/// C4 and a C major chord, through the Concert Grand chain.
+/// down. The plugin's fader holds full scale, so a preset can sit higher:
+/// at 1.5 a single fortissimo note peaks 3.7 dB below full scale and the
+/// chord is held by the fader, with a quarter of the knob still above.
+/// Measured at 48 kHz, C4 and a C major chord, through the Concert Grand
+/// chain.
 pub const PRESET_GAIN: f32 = 1.5;
 
 /// A short, honest bank. A piano is one instrument; what varies between these is
@@ -330,12 +331,14 @@ mod tests {
         // The old chain never wrote the compressor's mode; the plugin set it.
         // Its band mask named every band, on or off; the recipe names the
         // ones it turns off.
+        // The fourth slot was a ceiling this build no longer carries: it is
+        // kept as written and left alone, and the three before it are the
+        // recipe's.
         let mut want = crate::fx::concert_hall();
         want.slots[1].params.remove("mode");
         want.slots[0].set("band.0.enabled", true);
-        assert_eq!(p.fx, want);
-        let report = p.fx.check(&phonix_fx::Registry::builtin());
-        assert!(report.is_clean(), "{report}");
+        assert_eq!(p.fx.slots[..3], want.slots[..3]);
+        assert_eq!(p.fx.slots[3].kind, "brickwall-limiter");
         let again: PianoPatch = serde_json::from_str(&serde_json::to_string(&p).unwrap()).unwrap();
         assert_eq!(again.fx, p.fx, "a named chain does not survive a round trip");
     }

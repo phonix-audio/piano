@@ -55,6 +55,12 @@ The soundboard, with the microphones on it:
 
 ![The keyboard](docs/screenshots/piano_keyboard.png)
 
+Behind a switch, the effects the patch carries: a shelf, the glue, the
+room and the width. Which four and in what order is fixed; everything
+inside them is the player's.
+
+![The editor, effects](docs/screenshots/piano_effects.png)
+
 ## Layout
 
     crates/piano            the engine. serde, and libc on Linux.
@@ -160,6 +166,25 @@ The listening renders the model was developed against are still here as
 `render_the_sympathy_ab` and `render_the_pp_mechanics_ab` are the same shape.
 Each renders one passage with one thing changed, which is what they are for:
 they answer a question rather than showing the instrument off.
+
+## Effects
+
+Every patch carries a chain of four effects, in a fixed order, that the
+plugin runs after the engine and the editor shows on its effects page: a
+parametric equaliser with a low shelf, since a modelled string radiates
+below what a real soundboard does; a slow bus compressor for glue; a
+room, because the model has no boundary reflections and their absence
+is what reads as unreal; and a stereo width, the image as the
+microphones set it with the bass mono below. The engine itself owns none
+of them, so its tests hear the instrument bare. The chain is part of the
+patch and travels with a project; a project saved before it existed
+carries an empty chain, which is a real no-op. `COMPAT.md` says what of
+this is frozen.
+
+Behind the chain, and not a slot of it, the plugin runs the family's
+fader: a ride at full scale with a short lookahead that holds whatever
+the level control pushes past it. Nothing a plugin of this family hands
+its host passes full scale.
 
 ## Compatibility
 

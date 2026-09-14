@@ -24,7 +24,8 @@ piano-ui = { path = "crates/piano-ui", version = "0.1.0" }
 # phonix-sdk, mirrored under vendor/ as a squashed subtree so a clone of this
 # repository alone builds. `git subtree pull --prefix vendor/phonix-sdk
 # <sdk> <tag> --squash` moves it; nothing under vendor/ is edited here.
-phonix-fx     = { path = "vendor/phonix-sdk/crates/phonix-fx", features = ["parametric-eq", "compressor", "reverb", "brickwall-limiter"] }
+phonix-dsp    = { path = "vendor/phonix-sdk/crates/phonix-dsp" }
+phonix-fx     = { path = "vendor/phonix-sdk/crates/phonix-fx", features = ["parametric-eq", "compressor", "reverb", "stereo-imager"] }
 phonix-legacy = { path = "vendor/phonix-sdk/crates/phonix-legacy" }
 phonix-rt     = { path = "vendor/phonix-sdk/crates/phonix-rt" }
 phonix-plugin = { path = "vendor/phonix-sdk/crates/phonix-plugin" }
