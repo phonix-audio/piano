@@ -218,7 +218,7 @@ impl ModalBank {
         self.modes.clear();
         let mut unit = 0.0f64;
         for m in modes {
-            if !(m.w > 0.0) || m.w >= nyq || !m.sigma.is_finite() || m.sigma < 0.0 {
+            if m.w.partial_cmp(&0.0) != Some(std::cmp::Ordering::Greater) || m.w >= nyq || !m.sigma.is_finite() || m.sigma < 0.0 {
                 continue;
             }
             // Damped frequency. A mode damped past its own frequency is
@@ -863,7 +863,6 @@ impl ModalBank {
     /// kernel that is bandwidth-bound. Fused here it is streamed once. Identical
     /// arithmetic to `read` + `compliance`, so bit-for-bit the same numbers.
     #[inline]
-
     pub fn read_and_compliance(&self, shape: &[f64]) -> (f64, f64) {
         // `read` sums over `n`, `compliance` over `n_active`; for the board the
         // two are equal (it never prunes), and `read`'s terms past `n_active`
